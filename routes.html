@@ -1,0 +1,123 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>fabio</title>
+	<script src="https://unpkg.com/mithril/mithril.js"></script>
+	<!-- <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script> -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+	<style type="text/css">
+		td.tags { display: none; }
+		.footer { padding-top: 10px; }
+		.logo { height: 32px; margin: 0 auto; display: block; }
+
+		@media (min-width: 78em) {
+			td.tags{ display: table-cell; }
+		}
+	</style>
+</head>
+<body>
+
+<ul id="overrides" class="dropdown-content"></ul>
+
+<nav class="top-nav indigo">
+
+	<div class="container">
+		<div class="nav-wrapper">
+			<a href="/" class="brand-logo">fabio</a>
+			<ul id="nav-mobile" class="right hide-on-med-and-down">
+                <li><a class="dropdown-button" href="#!" data-activates="overrides">Overrides<i class="material-icons right">arrow_drop_down</i></a></li>
+				<li><a href="https://github.com/fabiolb/fabio/blob/master/CHANGELOG.md">1.5.11</a></li>
+				<li><a href="https://github.com/fabiolb/fabio">Github</a></li>
+			</ul>
+		</div>
+	</div>
+
+</nav>
+
+<div class="container">
+
+	<div class="section" id="routing-table">
+		<!-- <h5>Routing Table</h5>
+		<p><input type="text" id="filter" placeholder="type to filter routes"></p>
+		<table class="routes highlight" ></table> -->
+	</div>
+
+	<div class="section footer">
+		<img class="logo" src="logo.svg">
+	</div>
+
+</div>
+
+<script>
+	var Routes = []
+
+	var filterQuery = m.parseQueryString(window.location.search).filter;
+
+	var visible = function(item) {
+		for (const k in item) {
+			if (
+				['service','src','dst','opts'].includes(k) && 
+				typeof(item[k]) === 'string') {
+					if (item[k].includes(filterQuery)) {return true}
+			}
+		}
+	}
+
+	var RoutingTable = {
+		
+		oninit: function() {
+			m.request("routes.json").then(function(data){Routes=data})
+		},
+		view: function() {
+			return m("",
+				m("h5", "Routing Table"),
+				m("p", m("input#filter[type=text][autofocus][placeholder=type to filter routes]", {
+					oninput: function(e) {
+						filterQuery = e.target.value
+						window.history.pushState(null, null, "?filter=" + filterQuery)
+					}
+					// onkeyup: function(e) {
+					// 	if(e.keyCode === 13){
+					// 		filterQuery = e.target.value
+					// 		window.history.pushState(null, null, "?filter=" + filterQuery)
+					// 	}
+					// }
+
+				}
+				)),
+				m("thead", [
+					m("th","#"),
+					m("th","Service"),
+					m("th","Source"),
+					m("th","Dest"),
+					m("th","Options"),
+					m("th","Weight")
+				]),
+				m("tbody", [
+					Routes.filter(visible).map(function(r, i) {
+						return m("tr", [
+							m("td", i+1),
+							m("td", r.service),
+							m("td", r.src),
+							m("td", m("a", {href: r.dst}, r.dst)),
+							m("td", r.opts),
+							m("td", (r.weight * 100).toFixed(2) + '%')
+						])
+					})
+				])
+			)
+		}
+	}
+
+	m.mount(document.getElementById("routing-table"),RoutingTable)
+
+</script>
+
+</body>
+</html>
