@@ -1,0 +1,38 @@
+<body>
+    <script src="https://unpkg.com/mithril/mithril.js"></script>
+    <script>
+        var root = document.body
+
+        var state = {
+            term: "",
+            search: function () {
+                // save the state for this route
+                // this is equivalent to `history.replaceState({term: state.term}, null, location.href)`
+                m.route.set(m.route.get(), null, { replace: true, state: { term: state.term } })
+
+                // navigate away
+                location.href = "https://google.com/?q=" + state.term
+            }
+        }
+
+        var Form = {
+            oninit: function (vnode) {
+                state.term = vnode.attrs.term || "" // populated from the `history.state` property if the user presses the back button
+            },
+            view: function () {
+                return m("form", [
+                    m("input[placeholder='Search']", {
+                        oninput: function (e) { state.term = e.target.value },
+                        value: state.term
+                    }),
+                    m("button", { onclick: state.search }, "Search")
+                ])
+            }
+        }
+
+        m.route(root, "/", {
+            "/": Form,
+        })
+
+    </script>
+</body>
